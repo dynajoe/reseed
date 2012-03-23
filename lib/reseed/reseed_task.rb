@@ -18,14 +18,14 @@ module Reseed
 
      files.each do |f|
        if tfs_checkout f
-         puts "    ? #{f}"
+         puts "      #{f}"
        else
-         puts "    ? #{f}"
+         puts "    ! #{f}"
        end
      end
    end
 
-   puts "  Copying files from #{latest_build_dir}"
+   puts "  Source: #{latest_build_dir}"
 
    files.each do |f|
      base_name = File.basename f
@@ -34,14 +34,16 @@ module Reseed
      if File.exist? source
        begin
          FileUtils.cp source, f
-         puts "    O #{base_name}"
+         puts "      #{base_name}"
        rescue
-         puts "    X #{base_name} (Unable to copy)"
+         puts "    ! #{base_name} (Unable to copy)"
        end
      else
        puts "    ! #{base_name} (Doesn't exist)"
      end
    end
+
+   puts "Reseed completed! \r\n\r\n"
 
  end
 
