@@ -5,16 +5,15 @@ module Reseed
   TFS_PATH = 'c:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE\TF.exe'
 
   def execute options
-
     puts "Reseeding #{options.name}: "
-
+    
     from = options.source
     dest = options.dest
 
     latest_build_dir = File.join from, Dir.entries(from).sort.reverse.take(1).first
     files = get_file_paths dest
 
-    unless options.tfs
+    if options.tfs
      puts "  TFS get/checkout"
 
      files.each do |f|
@@ -47,7 +46,6 @@ module Reseed
  end
 
  def get_file_paths path
-
    unless path.kind_of? Array
      path = if File.exist? path then [path] else Dir[path] end
      end
