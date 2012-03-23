@@ -8,7 +8,7 @@ module Reseed
 
     puts "Reseeding #{options.name}: "
 
-    from = options.from
+    from = options.source
     dest = options.dest
 
     latest_build_dir = File.join from, Dir.entries(from).sort.reverse.take(1).first
