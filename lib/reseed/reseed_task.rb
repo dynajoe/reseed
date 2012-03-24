@@ -1,3 +1,7 @@
+require 'uri'
+require 'fileutils'
+require 'open-uri'
+
 module Reseed
 
   class ReseedTask
@@ -10,8 +14,17 @@ module Reseed
     from = options.source
     dest = options.dest
 
-    latest_build_dir = File.join from, Dir.entries(from).sort.reverse.take(1).first
+    source = File.join from, Dir.entries(from).sort.reverse.take(1).first
     files = get_file_paths dest
+
+
+     
+     if f =~ URI::DEFAULT_PARSER.regexp[:ABS_URI] 
+       copy_from = open(f).path 
+     else
+       copy_from = File.join source, base_name
+     end
+    
 
     if options.tfs
      puts "  TFS get/checkout"
@@ -25,21 +38,21 @@ module Reseed
      end
    end
 
-   puts "  Source: #{latest_build_dir}"
+   puts "  Source: #{source}"
 
    files.each do |f|
-     base_name = File.basename f
-     source = File.join latest_build_dir, base_name
 
-     if File.exist? source
+     file_name = File.basename f
+     
+     if File.exist? copy_from
        begin
-         FileUtils.cp source, f
-         puts "      #{base_name}"
+         FileUtils.cp copy_from, f
+         puts "      #{file_name}"
        rescue
-         puts "    ! #{base_name} (Unable to copy)"
+         puts "    ! #{file_name} (Unable to copy)"
        end
      else
-       puts "    ! #{base_name} (Doesn't exist)"
+       puts "    ! #{file_name} (Doesn't exist)"
      end
    end
 
