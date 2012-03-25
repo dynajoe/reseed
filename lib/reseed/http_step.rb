@@ -11,10 +11,8 @@ class HttpStep < Step
   def execute
     @files_to_download.each do |f|
       open f[:source] do |x|
-        puts x.path
         FileUtils.cp x.path, f[:dest]
       end
     end
   end
-
 end

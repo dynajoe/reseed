@@ -42,11 +42,9 @@ class Plan
       when :file_system
         plan.steps << Plan.create_fs_step(r[:source], r[:files])
       end
-
     end
 
     plan
-
   end
 
   def self.create_http_step source, files
@@ -58,17 +56,32 @@ class Plan
   end
 
   def self.create_fs_step source, files
-    fs_step = FileSystemStep.new
+    files_to_copy = []
 
     if File.directory? source
-      files_to_copy = files.map { |f| { :source => File.join(source, File.basename(f)), :dest => f } }
+      files = Plan.expand_files files
+      puts files
+
+      files.each do |f|
+        files_to_copy << { :source => File.join(source, File.basename(f)), :dest => f } 
+      end
     else
       files_to_copy = [ { :source => source, :dest => files[0] } ]
     end
 
+    fs_step = FileSystemStep.new
     fs_step.files_to_copy = files_to_copy
-
     fs_step
+  end
+
+  def self.expand_files files
+    files.map do |f| 
+      if File.exist? f
+        [f]
+      else
+        Dir[f]
+      end
+    end.flatten
   end
 
   def self.create_tfs_step files

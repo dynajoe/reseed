@@ -1,6 +1,5 @@
 require 'rspec'
 require 'reseed/plan'
-require 'fakefs'
 
 describe Plan, ".formulate" do
   
@@ -48,25 +47,23 @@ describe Plan, ".formulate" do
       plan.steps[0].files_to_copy[0][:source].should eq("./first.dll")
     end
 
-    it "should plan on reseeding the first over the old dll" do 
-      plan.steps[0].files_to_copy[0][:dest].should eq("./Shared/first.dll")
-    end
-
     it "should plan on reseeding the second dll from the specified location" do
       plan.steps[0].files_to_copy[1][:source].should eq("./second.dll")
+    end
+
+    it "should plan on reseeding the first over the old dll" do 
+      plan.steps[0].files_to_copy[0][:dest].should eq("./Shared/first.dll")
     end
 
     it "should plan on reseeding the second over the old dll" do 
       plan.steps[0].files_to_copy[1][:dest].should eq("./Shared/second.dll")
     end
-
   end
 
   context "With a source that is a website directory" do
-    options = { :to_reseed => [] } 
-    options[:to_reseed] << { :source => "http://build-server/latest/", :files => ["./Shared/webly.dll"] } 
+    options = { :to_reseed => [{ :source => "http://build-server/latest/", :files => ["./Shared/webly.dll"] } ] } 
     
-    plan = Plan::formulate options  
+    plan = Plan.formulate options  
     
     it "should plan to download the dll from the correct location" do
       plan.steps[0].files_to_download[0][:source].should eq("http://build-server/latest/webly.dll") 
@@ -75,5 +72,22 @@ describe Plan, ".formulate" do
     it "should plan to overwrite the correct file" do
       plan.steps[0].files_to_download[0][:dest].should eq("./Shared/webly.dll") 
     end 
+  end
+
+  context "with dynamic list of files to copy" do 
+    options = { :to_reseed => [{ :source => "./spec/source", :files => ["./spec/files/*.dll"] }] } 
+    plan = Plan.formulate options  
+
+    it "should get the correct files" do
+      plan.steps[0].files_to_copy[0][:dest].should eq("./spec/files/1.dll")
+      plan.steps[0].files_to_copy[1][:dest].should eq("./spec/files/2.dll")
+      plan.steps[0].files_to_copy[2][:dest].should eq("./spec/files/3.dll")        
+    end
+
+    it "should plan on copying to the correct directory" do
+      plan.steps[0].files_to_copy[0][:source].should eq("./spec/source/1.dll")
+      plan.steps[0].files_to_copy[1][:source].should eq("./spec/source/2.dll")
+      plan.steps[0].files_to_copy[2][:source].should eq("./spec/source/3.dll")        
+    end
   end
 end
