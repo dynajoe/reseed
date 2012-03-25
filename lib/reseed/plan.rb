@@ -1,4 +1,5 @@
 require 'reseed/file_system_step'
+require 'reseed/http_step'
 require 'reseed/tfs_step'
 
 class Plan
@@ -42,19 +43,31 @@ class Plan
         plan.steps << Plan.create_fs_step(r[:source], r[:files])
       end
 
-
     end
 
     plan
 
   end
 
-  def self.create_http_step
-    nil
+  def self.create_http_step source, files
+    http_step = HttpStep.new
+
+    http_step.files_to_download = files.map { |f| { :source => File.join(source, File.basename(f)), :dest => f } }
+
+    http_step
   end
 
   def self.create_fs_step source, files
     fs_step = FileSystemStep.new
+
+    if File.directory? source
+      files_to_copy = files.map { |f| { :source => File.join(source, File.basename(f)), :dest => f } }
+    else
+      files_to_copy = [ { :source => source, :dest => files[0] } ]
+    end
+
+    fs_step.files_to_copy = files_to_copy
+
     fs_step
   end
 
