@@ -2,6 +2,8 @@ require 'uri'
 require 'fileutils'
 require 'open-uri'
 
+TFS_PATH = 'c:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE\TF.exe'
+
 # Don't allow downloaded files to be created as StringIO. Force a tempfile to be created.
 OpenURI::Buffer.send :remove_const, 'StringMax' if OpenURI::Buffer.const_defined?('StringMax')
 OpenURI::Buffer.const_set 'StringMax', 0
@@ -20,46 +22,62 @@ class ReseedTask
 
   def reseed_file args
     if args[:source][:latest_dir]
-      reseed_from_latest_dir args[:source][:latest_dir], args[:file]
+      reseed_from_latest_dir args[:source][:latest_dir], args[:file],args[:tfs]
     elsif args[:source][:dir]
-      reseed_from_dir args[:source][:dir], args[:file]
+      reseed_from_dir args[:source][:dir], args[:file], args[:tfs]
     elsif args[:source][:web]
-      reseed_from_web args[:source][:web], args[:file]
+      reseed_from_web args[:source][:web], args[:file],args[:tfs]
     end
   end
 
   def reseed_files args
     Dir.glob(args[:files]).each do |f|
-      args = { :file => f, :source => args[:source] }
+      args = { :file => f, :source => args[:source], :tfs => args[:tfs] }
       reseed_file args
     end
   end
 
-  def reseed_from_latest_dir base_dir, file
-    source = Dir[File.join(base_dir, "*")].sort.reverse.first
-    reseed_from_dir source, file
+  def reseed_from_latest_dir base_dir, file, checkout
+    source = File.join base_dir, Dir.entries(base_dir).sort.reverse.take(1).first
+    reseed_from_dir source, file, checkout
   end
 
-  def reseed_from_dir dir, file
+  def reseed_from_dir dir, file, checkout
     source = File.join(dir, File.basename(file))
-    reseed source, file 
+    reseed source, file, checkout 
   end
 
-  def reseed_from_web url, file
+  def reseed_from_web url, file, checkout
     open url do |x|
-      reseed x.path, file
+      reseed x.path, file, checkout
     end
   end
 
-  def reseed source, dest
-    puts "{source} -> {dest}"
-    
-    begin
-      FileUtils.cp source, dest
-    rescue
+  def reseed source, dest, checkout
+    base_name = File.basename dest
+
+    if File.exist? source
+
+      if checkout 
+        tfs_checkout dest
+      end
       
-    end
-    
+      begin
+       FileUtils.cp source, dest
+       puts "      #{base_name}"
+      rescue
+       puts "    ! #{base_name} (Unable to copy)"
+      end
+   else
+     puts "    ! #{base_name} (Doesn't exist)"
+   end
+
   end
+
+  def tfs_checkout path
+   return false unless system TFS_PATH, "get", path, " /force /noprompt"
+   return false unless system TFS_PATH, "checkout", path
+   return true
+ end
 
 end
