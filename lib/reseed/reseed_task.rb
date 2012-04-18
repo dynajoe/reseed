@@ -30,7 +30,8 @@ class ReseedTask
 
   def reseed_files args
     Dir.glob(args[:files]).each do |f|
-      reseed_file { :file => f, :source => args[:source] }
+      args = { :file => f, :source => args[:source] }
+      reseed_file args
     end
   end
 
@@ -41,12 +42,24 @@ class ReseedTask
 
   def reseed_from_dir dir, file
     source = File.join(dir, File.basename(file))
-    FileUtils.cp source, file 
+    reseed source, file 
   end
 
   def reseed_from_web url, file
     open url do |x|
-      FileUtils.cp x.path, file
+      reseed x.path, file
     end
   end
+
+  def reseed source, dest
+    puts "{source} -> {dest}"
+    
+    begin
+      FileUtils.cp source, dest
+    rescue
+      
+    end
+    
+  end
+
 end
