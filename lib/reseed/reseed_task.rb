@@ -10,15 +10,22 @@ class ReseedTask
 
   def execute seeds
     seeds.each do |s|
-      reseed_file s unless s[:file].nil?
-      reseed_files s unless s[:files].nil?
+      if s[:file]
+        reseed_file s
+      elsif s[:files]
+        reseed_files s
+      end
     end
   end
 
   def reseed_file args
-    reseed_from_latest_dir args[:source][:latest_dir], args[:file] unless args[:source][:latest_dir].nil?
-    reseed_from_dir args[:source][:dir], args[:file] unless args[:source][:dir].nil?
-    reseed_from_web args[:source][:web], args[:file] unless args[:source][:web].nil?
+    if args[:source][:latest_dir]
+      reseed_from_latest_dir args[:source][:latest_dir], args[:file]
+    elsif args[:source][:dir]
+      reseed_from_dir args[:source][:dir], args[:file]
+    elsif args[:source][:web]
+      reseed_from_web args[:source][:web], args[:file]
+    end
   end
 
   def reseed_files args
