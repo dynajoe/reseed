@@ -1,5 +1,4 @@
 require "reseed/version"
-require 'reseed/params'
 require 'reseed/reseed_task'
 require 'rake'
 require 'json'
@@ -11,8 +10,7 @@ module Reseed
     Object.class_eval {
       def reseed(name, &configblock)
         task :"#{name}" do |t, task_args|
-          options = ReseedParams.new
-          options.name = name
+          options = []
           configblock.call options
           task = ReseedTask.new
           task.execute options
