@@ -21,19 +21,20 @@ class ReseedTask
   end
 
   def reseed_file args
-    if args[:source][:latest_dir]
-      reseed_from_latest_dir args[:source][:latest_dir], args[:file],args[:tfs]
-    elsif args[:source][:dir]
-      reseed_from_dir args[:source][:dir], args[:file], args[:tfs]
-    elsif args[:source][:web]
-      reseed_from_web args[:source][:web], args[:file],args[:tfs]
+    if args[:latest_dir]
+      reseed_from_latest_dir args[:latest_dir], args[:file], args[:tfs]
+    elsif args[:dir]
+      reseed_from_dir args[:dir], args[:file], args[:tfs]
+    elsif args[:web]
+      reseed_from_web args[:web], args[:file], args[:tfs]
     end
   end
 
   def reseed_files args
-    Dir.glob(args[:files]).each do |f|
-      args = { :file => f, :source => args[:source], :tfs => args[:tfs] }
-      reseed_file args
+    files = args.delete :files
+
+    Dir.glob(files).each do |f|
+      reseed_file({ :file => f }.merge(args))
     end
   end
 
