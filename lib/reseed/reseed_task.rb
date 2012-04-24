@@ -98,14 +98,21 @@ class ReseedTask
  end
 
  def download_and_extract url_to_zip
+  temp_dir = Dir.mktmpdir
 
   open url_to_zip do |f|
     zip_path = f.path
-    puts 'About to unzip the contents of the file to some random directory.'
-    return File.dirname zip_path
+    
+    Zip::ZipFile.open(zip_path) do |zip|
+      zip.each do |z|
+        dest = File.join temp_dir, z.name
+        FileUtils.mkdir_p(File.dirname(dest))
+        zip.extract z, dest
+      end
+    end
   end
 
+  return temp_dir
  end
-
 
 end
