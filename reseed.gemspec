@@ -22,6 +22,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rspec"
   s.add_development_dependency "mocha"
   s.add_development_dependency "fakeweb"
+
   
-  # s.add_runtime_dependency "rest-client"
+  s.add_runtime_dependency "zip"
 end
