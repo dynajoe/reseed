@@ -10,38 +10,40 @@ OpenURI::Buffer.const_set 'StringMax', 0
 
 class ReseedTask
 
-  def execute seeds
+  def execute name, seeds
+    puts "=== #{name} ==="
+
     seeds.each do |s|
-      
-      if s[:tfs_checkout] 
-        tfs_checkout_dir s[:tfs_checkout_dir]
-      end
+      files_to_reseed = []
 
       if s[:file]
-        reseed_file s
+        files_to_reseed = [s]
       elsif s[:files]
-        reseed_files s
+        files = Dir.glob s.delete :files
+        files_to_reseed = files.map { |f| { :file => f }.merge(s) }
       end
-    end
-  end
 
-  def reseed_file args
+      if s[:tfs]
+        puts "\r\nTFS checkout latest..."
+        tfs_checkout files
+      end
 
-    if args[:latest_dir]
-      reseed_from_latest_dir args[:latest_dir], args[:file]
-    elsif args[:dir]
-      reseed_from_dir args[:dir], args[:file]
-    elsif args[:web]
-      reseed_from_web args[:web], args[:file]
+      puts "\r\n#{files_to_reseed.count} " + (files_to_reseed.count == 1 ? "file..." : "files...") 
+      reseed_files files_to_reseed
     end
 
+    puts "\r\n"
   end
 
-  def reseed_files args
-    files = args.delete :files
-
-    Dir.glob(files).each do |f|
-      reseed_file({ :file => f }.merge(args))
+  def reseed_files files
+    files.each do |args|
+      if args[:latest_dir]
+        reseed_from_latest_dir args[:latest_dir], args[:file]
+      elsif args[:dir]
+        reseed_from_dir args[:dir], args[:file]
+      elsif args[:web]
+        reseed_from_web args[:web], args[:file]
+      end
     end
   end
 
@@ -56,7 +58,6 @@ class ReseedTask
   end
 
   def reseed_from_web url, file
-
     if /\.zip$/i.match url
       extracted_to = download_and_extract url
       reseed_from_dir extracted_to, file
@@ -72,46 +73,43 @@ class ReseedTask
 
   def reseed source, dest
     base_name = File.basename dest
-
     if File.exist? source
-
       begin
        FileUtils.cp source, dest
-       puts "      #{base_name}"
       rescue
-       puts "    ! #{base_name} (Unable to copy)"
+       puts "   #{base_name} (Unable to copy)"
       end
    else
-     puts "    ! #{base_name} (Doesn't exist)"
+     puts "   #{base_name} (Doesn't exist)"
    end
-
   end
 
-  def tfs_checkout_dir dir
-    tfs_checkout File.join dir, "*"
+  def tfs_checkout paths
+    checked_out = 0
+    paths.each_slice(10) do |s|
+      to_checkout = s.map{ |x| "\"#{x}\"" }.join " "
+      `"#{TFS_PATH}" get #{to_checkout} /force /noprompt >nul 2>&1`
+      `"#{TFS_PATH}" checkout #{to_checkout} >nul 2>&1`
+      checked_out += s.count
+      print "\r   #{checked_out} of #{paths.count}"
+    end
+    print "\r\n"
   end
 
-  def tfs_checkout path
-   return false unless system TFS_PATH, "get", path, " /force /noprompt"
-   return false unless system TFS_PATH, "checkout", path
-   return true
- end
+  def download_and_extract url_to_zip
+    temp_dir = Dir.mktmpdir
 
- def download_and_extract url_to_zip
-  temp_dir = Dir.mktmpdir
-
-  open url_to_zip do |f|
-    zip_path = f.path
-    
-    Zip::ZipFile.open(zip_path) do |zip|
-      zip.each do |z|
-        dest = File.join temp_dir, z.name
-        FileUtils.mkdir_p(File.dirname(dest))
-        zip.extract z, dest
+    open url_to_zip do |f|
+      zip_path = f.path
+      
+      Zip::ZipFile.open(zip_path) do |zip|
+        zip.each do |z|
+          dest = File.join temp_dir, z.name
+          FileUtils.mkdir_p(File.dirname(dest))
+          zip.extract z, dest
+        end
       end
     end
-  end
-
   return temp_dir
  end
 

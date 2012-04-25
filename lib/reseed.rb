@@ -13,7 +13,7 @@ module Reseed
           options = []
           configblock.call options
           task = ReseedTask.new
-          task.execute options
+          task.execute name, options
         end
       end
     }
