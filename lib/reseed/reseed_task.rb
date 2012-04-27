@@ -25,7 +25,7 @@ class ReseedTask
 
       if s[:tfs]
         puts "\r\nTFS checkout latest..."
-        tfs_checkout files
+        tfs_checkout files_to_reseed
       end
 
       puts "\r\n#{files_to_reseed.count} " + (files_to_reseed.count == 1 ? "file..." : "files...") 
