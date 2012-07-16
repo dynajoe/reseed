@@ -25,7 +25,6 @@ class ReseedTask
       end
 
       @current_task = nil
-      puts "\r\n"
    end
 
    def reseed_files files
