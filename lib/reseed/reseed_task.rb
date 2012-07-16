@@ -21,7 +21,6 @@ class ReseedTask
             files_to_reseed = files.map { |f| { :file => f }.merge(s) }
          end
 
-         puts "\r\n#{files_to_reseed.count} " + (files_to_reseed.count == 1 ? "file..." : "files...") 
          reseed_files files_to_reseed
       end
 
@@ -70,17 +69,17 @@ class ReseedTask
       if File.exist? source
          begin
             FileUtils.cp source, dest
-            puts "#{@current_task}:#{base_name}"
+            puts "#{@current_task} : #{base_name}"
          rescue
-            puts "#{@current_task}:#{base_name} (Unable to copy)"
+            puts "#{@current_task} : (Unable to copy) #{base_name}"
          end
       else
-         puts "#{@current_task}:#{base_name} (Doesn't exist)"
+         puts "#{@current_task} : (Doesn't exist) #{base_name}"
       end
    end
 
    def download_and_extract url_to_zip
-      puts "Downloading #{url_to_zip}"
+      puts "#{@current_task} : Downloading #{url_to_zip}"
 
       temp_dir = Dir.mktmpdir
 
