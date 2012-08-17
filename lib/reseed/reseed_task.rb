@@ -58,8 +58,12 @@ class ReseedTask
          url += File.basename file
       end
 
-      open url do |x|
-         reseed x.path, file
+      begin
+         open url do |x|
+            reseed x.path, file
+         end
+      rescue
+         puts "#{@current_task} : (Doesn't exist) #{base_name}"
       end
    end
 
