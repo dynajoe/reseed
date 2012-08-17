@@ -63,6 +63,7 @@ class ReseedTask
             reseed x.path, file
          end
       rescue
+         base_name = File.basename file
          puts "#{@current_task} : (Doesn't exist) #{base_name}"
       end
    end
