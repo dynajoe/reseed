@@ -17,7 +17,15 @@ class ReseedTask
          if s[:file]
             files_to_reseed = [s]
          elsif s[:files]
-            files = Dir.glob s.delete :files
+            arg = s.delete :files
+            
+            if arg.is_a? String
+               files = Dir.glob arg
+            elsif arg.is_a? Array
+               files = arg         
+            else
+               return 
+            end
             files_to_reseed = files.map { |f| { :file => f }.merge(s) }
          end
 
